@@ -22,7 +22,6 @@ resume_screener/
 │── sample_job.txt # Example job description for testing
 │── README.md # Project description
 
-
 ---
 
 ## 🛠 Tech Stack
