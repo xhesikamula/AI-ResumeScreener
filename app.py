@@ -96,16 +96,24 @@ def show_keywords(title, words, icon):
         else:
             st.write("None found")
 
+import re
+
 def highlight_keywords_in_resume(resume_text, matched_keywords):
     st.subheader("📄 Keywords in Context")
     resume_sentences = [s.strip() for s in resume_text.split('.') if s.strip()]
+    
     for sentence in resume_sentences:
-        highlighted = sentence
-        for kw in matched_keywords:
-            if kw.lower() in sentence.lower():
-                highlighted = highlighted.replace(kw, f"**{kw}**")
-        if any(kw.lower() in sentence.lower() for kw in matched_keywords):
+        sentence_lower = sentence.lower()
+        # Find keywords that appear in this sentence
+        kws_in_sentence = [kw for kw in matched_keywords if any(word in sentence_lower for word in kw.lower().split())]
+        
+        if kws_in_sentence:
+            highlighted = sentence
+            for kw in kws_in_sentence:
+                # Case-insensitive replacement
+                highlighted = re.sub(f"(?i)({re.escape(kw)})", r"**\1**", highlighted)
             st.write(f"✓ {highlighted}")
+
 
 # ------------------ Streamlit UI ------------------
 
