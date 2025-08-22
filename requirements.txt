@@ -4,3 +4,5 @@ sentence-transformers
 scikit-learn
 PyPDF2
 rake-nltk
+pdf2image
+pillow
