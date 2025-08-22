@@ -6,3 +6,4 @@ PyPDF2
 rake-nltk
 pdf2image
 pillow
+pytesseract
