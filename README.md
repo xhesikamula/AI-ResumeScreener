@@ -16,6 +16,7 @@ A lightweight NLP tool to match candidate resumes to job descriptions. Built wit
 
 ## 📂 Project Structure
 resume_screener/
+
 │── app.py # Main Streamlit app
 
 │── requirements.txt # Python dependencies
