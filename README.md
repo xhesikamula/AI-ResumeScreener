@@ -44,7 +44,7 @@ resume_screener/
 1. Clone the repository:
 
 ```bash
-git clone <your-repo-url>
+git clone <this repo>
 cd resume_screener
 
 ---
