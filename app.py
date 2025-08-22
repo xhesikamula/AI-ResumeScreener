@@ -14,13 +14,25 @@ import time
 
 # ------------------ NLTK Setup ------------------
 import nltk
+import os
 
-nltk_data_dir = "nltk_data"
+# Create a folder for NLTK data inside your app
+nltk_data_dir = os.path.join(os.path.dirname(__file__), "nltk_data")
+os.makedirs(nltk_data_dir, exist_ok=True)
+
+# Download all necessary NLTK resources
 nltk.download("punkt", download_dir=nltk_data_dir)
 nltk.download("stopwords", download_dir=nltk_data_dir)
+nltk.download("punkt_tab", download_dir=nltk_data_dir)  # for rake_nltk
 
+# Tell NLTK where to look for data
+nltk.data.path.append(nltk_data_dir)
+
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 
 stop_words = set(stopwords.words("english"))
+
 
 # ------------------ Load Model ------------------
 model = SentenceTransformer("all-MiniLM-L6-v2")
