@@ -13,8 +13,13 @@ import pytesseract
 import time
 
 # ------------------ NLTK Setup ------------------
-nltk.download("punkt")
-nltk.download("stopwords")
+import nltk
+
+nltk_data_dir = "nltk_data"
+nltk.download("punkt", download_dir=nltk_data_dir)
+nltk.download("stopwords", download_dir=nltk_data_dir)
+
+
 stop_words = set(stopwords.words("english"))
 
 # ------------------ Load Model ------------------

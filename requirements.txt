@@ -3,6 +3,7 @@ transformers
 sentence-transformers
 scikit-learn
 PyPDF2
+nltk
 rake-nltk
 pdf2image
 pillow
