@@ -11,34 +11,24 @@ from rake_nltk import Rake
 from pdf2image import convert_from_bytes
 import pytesseract
 import time
+import os
+import re
 
 # ------------------ NLTK Setup ------------------
-import nltk
-import os
-
-# Create a folder for NLTK data inside your app
 nltk_data_dir = os.path.join(os.path.dirname(__file__), "nltk_data")
 os.makedirs(nltk_data_dir, exist_ok=True)
 
-# Download all necessary NLTK resources
 nltk.download("punkt", download_dir=nltk_data_dir)
 nltk.download("stopwords", download_dir=nltk_data_dir)
-nltk.download("punkt_tab", download_dir=nltk_data_dir)  # for rake_nltk
+nltk.download("punkt_tab", download_dir=nltk_data_dir)
 
-# Tell NLTK where to look for data
 nltk.data.path.append(nltk_data_dir)
-
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-
 stop_words = set(stopwords.words("english"))
-
 
 # ------------------ Load Model ------------------
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # ------------------ Helper Functions ------------------
-
 def extract_text_from_pdf(uploaded_file):
     pdf_reader = PyPDF2.PdfReader(uploaded_file)
     text = ""
@@ -89,39 +79,60 @@ def compute_final_score(job_text, resume_text, matched, job_keywords):
     final_score = (0.6 * sim_score) + (0.4 * keyword_score)
     return round(final_score, 2), round(sim_score, 2), keyword_score
 
-def show_keywords(title, words, icon):
-    with st.expander(title):
-        if words:
-            st.write(" ".join([f"{icon} {w}" for w in list(words)[:50]]))
-        else:
-            st.write("None found")
-
-import re
+def show_keywords(title, words, color):
+    st.subheader(title)
+    if words:
+        chips = " ".join(
+            [f"<span style='background:{color}; padding:6px 12px; border-radius:20px; margin:4px; display:inline-block; font-size:0.9rem;'>{w}</span>" for w in words]
+        )
+        st.markdown(chips, unsafe_allow_html=True)
+    else:
+        st.write("None found")
 
 def highlight_keywords_in_resume(resume_text, matched_keywords):
     st.subheader("📄 Keywords in Context")
     resume_sentences = [s.strip() for s in resume_text.split('.') if s.strip()]
-    
     for sentence in resume_sentences:
         sentence_lower = sentence.lower()
-        # Find keywords that appear in this sentence
         kws_in_sentence = [kw for kw in matched_keywords if any(word in sentence_lower for word in kw.lower().split())]
-        
         if kws_in_sentence:
             highlighted = sentence
             for kw in kws_in_sentence:
-                # Case-insensitive replacement
                 highlighted = re.sub(f"(?i)({re.escape(kw)})", r"**\1**", highlighted)
             st.write(f"✓ {highlighted}")
 
+# ------------------ Streamlit Custom Styling ------------------
+st.markdown(
+    """
+    <style>
+    .main-title {
+        text-align: center;
+        font-size: 2.5rem !important;
+        font-weight: 700;
+        color: #4F46E5;
+        margin-bottom: 0.5rem;
+    }
+    .subtitle {
+        text-align: center;
+        font-size: 1.2rem;
+        color: #6B7280;
+        margin-bottom: 2rem;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 # ------------------ Streamlit UI ------------------
+st.markdown("<h1 class='main-title'>🚀 AI Resume Screener</h1>", unsafe_allow_html=True)
+st.markdown("<p class='subtitle'>Upload your resume & job description to see how well you match!</p>", unsafe_allow_html=True)
 
-st.title("🧑‍💻 AI Resume Screener")
-st.write("Upload a job description and your resume to check the match score!")
+col1, col2 = st.columns(2)
+with col1:
+    job_description = st.text_area("📄 Paste Job Description", height=300)
 
-job_description = st.text_area("Paste Job Description here:")
-resume_file = st.file_uploader("Upload Resume (PDF only)", type=["pdf"])
+with col2:
+    resume_file = st.file_uploader("📂 Upload Resume (PDF only)", type=["pdf"])
 
 if st.button("Analyze") and job_description and resume_file:
     with st.spinner("Extracting resume text..."):
@@ -129,16 +140,30 @@ if st.button("Analyze") and job_description and resume_file:
         time.sleep(0.5)
 
     matched, missing, job_keywords = keyword_match(job_description, resume_text)
-    final_score, sim_score, keyword_score = compute_final_score(
-        job_description, resume_text, matched, job_keywords
+    final_score, sim_score, keyword_score = compute_final_score(job_description, resume_text, matched, job_keywords)
+
+    # Score Cards
+    st.markdown(
+        f"""
+        <div style="display:flex; gap:20px; justify-content:center; margin-top:20px; flex-wrap:wrap;">
+            <div style="flex:1; min-width:200px; padding:20px; border-radius:15px; background:#EEF2FF; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <h3 style="color:#4338CA;">Final Score</h3>
+                <p style="font-size:2rem; font-weight:bold; color:#111827;">{final_score}%</p>
+            </div>
+            <div style="flex:1; min-width:200px; padding:20px; border-radius:15px; background:#ECFDF5; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <h3 style="color:#047857;">Semantic Similarity</h3>
+                <p style="font-size:2rem; font-weight:bold; color:#111827;">{sim_score}%</p>
+            </div>
+            <div style="flex:1; min-width:200px; padding:20px; border-radius:15px; background:#FEF3C7; text-align:center; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <h3 style="color:#B45309;">Keyword Coverage</h3>
+                <p style="font-size:2rem; font-weight:bold; color:#111827;">{keyword_score}%</p>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
-    st.subheader("✓ Overall Match Score")
-    st.metric("Final Score", f"{final_score}%")
-    st.write(f"🔹 Semantic Similarity: {sim_score}%")
-    st.write(f"🔹 Keyword Coverage: {keyword_score}%")
-
-    show_keywords("🎯 Skills Matched", matched, "✓")
-    show_keywords("❗ Skills Missing", missing, "✖")
+    show_keywords("✅ Skills Matched", matched, "#DCFCE7")
+    show_keywords("❌ Skills Missing", missing, "#FEE2E2")
 
     highlight_keywords_in_resume(resume_text, matched)
