@@ -44,7 +44,7 @@ resume_screener/
 1. Clone the repository:
 
 ```bash
-git clone <your-repo-url>
+git clone <this repo>
 cd resume_screener
 
 ---
@@ -56,4 +56,10 @@ pip install -r requirements.txt
 
 3. Run the Streamlit app:
 streamlit run app.py
+
+---
+
+Here is the link:https://ai-resume-screener-25.streamlit.app/
+
+---
 
